@@ -102,7 +102,7 @@ class Personaje
 
 public static function borrar($codigo)
     {
-         $ruta = self::$ruta_global . $codigo . '.json';
+         $ruta = self::$ruta_global . $codigo;
 
     if (file_exists($ruta)) {
         return unlink($ruta); // retorna true si se eliminó correctamente
@@ -110,3 +110,4 @@ public static function borrar($codigo)
 
     return false;
     }
+}

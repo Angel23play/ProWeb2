@@ -1,43 +1,62 @@
 <?php
-$archivo = 'Data/personajes/' . $_GET{'codigo'};
-$personajes = file_exists($archivo) ? json_decode(file_get_contents($archivo), true) : [];
+require_once "personajes.php";
+$ListadoObra = Personaje::cargar();
 
-$codigo_obra = $_GET['codigo_obra'] ?? null;
-if (!$codigo_obra) {
-    die("Código de obra no especificado.");
+if (isset($_GET['accion']) && $_GET['accion'] === 'editar' && isset($_GET['codigo'])) {
+    $codigo = $_GET['codigo'];
+    $obras = Obra::cargar();
+
+    foreach ($obras as $obra) {
+        if ($obra['codigo'] === $codigo) {
+            $obraEditar = new Obra($obra);
+            break;
+        }
+    }
 }
 
-$accion = $_GET['accion'] ?? null;
-$personaje_editando = null;
 
-if ($_POST) {
-    $cedula = $_POST['cedula'];
-    $nuevo = new Personaje(
-        $cedula,
-        $_POST['foto_url'],
-        $_POST['nombre'],
-        $_POST['apellido'],
-        $_POST['fecha_nacimiento'],
-        $_POST['sexo'],
-        $_POST['habilidades'],
-        $_POST['comida_favorita'],
-        $codigo_obra
-    );
 
-    $personajes[$cedula] = (array)$nuevo;
-    file_put_contents($archivo, json_encode($personajes, JSON_PRETTY_PRINT));
-    header("Location: personajes.php?codigo_obra=$codigo_obra");
-    exit;
-} elseif ($accion === 'eliminar') {
-    $cedula = $_GET['cedula'];
-    unset($personajes[$cedula]);
-    file_put_contents($archivo, json_encode($personajes, JSON_PRETTY_PRINT));
-    header("Location: personajes.php?codigo_obra=$codigo_obra");
-    exit;
-} elseif ($accion === 'editar') {
-    $cedula = $_GET['cedula'];
-    $personaje_editando = $personajes[$cedula] ?? null;
+
+if (isset($_POST['accion'])) {
+    if ($_POST['accion'] === 'crear') {
+
+        //Aqui recibe los datos mediante el post
+        $nuevaObra = new Obra($_POST);
+
+        if (Obra::guardar($nuevaObra)) {
+            header("Location: index.php");
+            exit();
+        } else {
+            $error = "El código ya existe.";
+        }
+
+    } elseif ($_POST['accion'] === 'editar') {
+        $obraEditar = new Obra($_POST);
+
+        //Aqui recibe los datos mediante el post
+        if (Obra::editar($obraEditar)) {
+            header("Location: index.php");
+            exit;
+        } else {
+            $error = "No se encontró la obra para editar.";
+        }
+    }
 }
+
+if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar' && isset($_GET['codigo'])) {
+    $codigo = $_GET['codigo'];
+    //Esto elimina y da una validacion
+    if (Obra::borrar($codigo)) {
+        echo  "<script>
+        setTimeout(function() {
+            window.location.href = 'index.php';
+        }, 2000); // espera 2 segundos antes de redirigir
+    </script><p class='text-success fw-bold mt-2'>Esta Obra se elimino correctamente!</p>";
+    }
+    header('index.php');
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
