@@ -36,13 +36,14 @@ if (isset($_POST['accion'])) {
 
     } elseif ($_POST['accion'] === 'editar') {
         $obraEditar = new Obra($_POST);
-
+        var_dump($obraEditar);
         //Aqui recibe los datos mediante el post
         if (Obra::editar($obraEditar)) {
             header("Location: index.php");
             exit;
         } else {
             $error = "No se encontró la obra para editar.";
+            echo $error;
         }
     }
 }
@@ -62,7 +63,7 @@ if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar' && isset($_GET['cod
 }
 
 ?>
-
+    <h2 class="text-secondary text-center">Listado de Obras</h2>
 <div class="container my-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-primary">📚 Obras Registradas</h2>
@@ -189,7 +190,7 @@ if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar' && isset($_GET['cod
                         <td><?= htmlspecialchars($obra['codigo']) ?></td>
                         <td>
                             <?php if (!empty($obra['foto_url'])): ?>
-                                <img src="<?= htmlspecialchars($obra['foto_url']) ?>" alt="Foto" width="80" height="80">
+                                <img src="<?= htmlspecialchars($obra['foto_url']) ?>" alt="Foto" width="300" height="250">
                             <?php else: ?>
                                 Sin imagen
                             <?php endif; ?>
@@ -205,7 +206,7 @@ if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar' && isset($_GET['cod
                             <a href="?accion=eliminar&codigo=<?= urlencode($obra['codigo']) ?>"
                                 class="btn btn-sm btn-danger mb-1"
                                 onclick="return confirm('¿Eliminar obra y sus personajes relacionados?')">Eliminar</a>
-                            <a href="personajes.php?codigo_obra=<?= urlencode($obra['codigo']) ?>"
+                            <a href="Views/personajes.php?codigo_obra=<?= urlencode($obra['codigo']) ?>"
                                 class="btn btn-sm btn-info">Personajes</a>
                         </td>
 

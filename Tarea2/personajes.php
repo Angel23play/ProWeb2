@@ -15,6 +15,8 @@ comida_favorita	Texto libre
 ✅ Cada personaje debe estar relacionado a una obra existente (por su código).
 */
 
+
+require('obra.php');
 class Personaje
 {
     public $cedula;
@@ -25,8 +27,10 @@ class Personaje
     public $sexo;
     public $habilidades;
     public $comida_favorita;
-    public $codigo_obra;
-    protected static $ruta_global = __DIR__ . '/Data/personajes/';
+
+    protected static $ruta_global = __DIR__ . '/Data/obras/';
+
+
 
     public function __construct(array $data)
     {
@@ -36,78 +40,64 @@ class Personaje
             }
         }
     }
+    
 
-    public static function cargar(): array
-    {
-        $ruta = self::$ruta_global;
-        $data = [];
 
-        if (is_dir($ruta)) {
-            $archivos = scandir($ruta);
-            foreach ($archivos as $archivo) {
-                if ($archivo !== '.' && $archivo !== '..') {
-                    $contenido = file_get_contents($ruta . $archivo);
-                    $personaje = json_decode($contenido, true);
-                    if ($personaje !== null) {
-                        $data[] = $personaje;
-                    }
-                }
-            }
-        } else {
-            return $data = [];
-        }
-
-        return $data;
+    public function obtenerporcedula(){
+        return $this->cedula;
     }
 
-    public static function guardar(Personaje $personaje): bool
+    public static function guardar(Personaje $personaje, $codigo_obra): bool
     {
-        $ruta = self::$ruta_global . $personaje->codigo;
-        $json = json_encode($personaje);
-        if (file_put_contents($ruta, $json) !== false) {
-            return true;
+        $Obra = Obra::ObtenerporCodigo($codigo_obra);
+
+        if (!$Obra) {
+            return false;
+        }
+
+        array_push($Obra->personaje, $personaje);
+
+        return Obra::guardar($Obra);
+
+    }
+
+
+    public static function editar($codigo, Personaje $personajeEditar): bool
+    {
+        $obra = Obra::ObtenerporCodigo($codigo);
+        if (!$obra) {
+            return false;
+        }
+
+       foreach ($obra->personaje as $index => $personaje) {
+            if ($personaje['cedula'] === $personajeEditar->cedula) {
+                
+                $obra->personaje[$index] = (array) $personajeEditar;
+                Obra::guardar($obra); // Guarda la obra actualizada
+                return true; 
+            }
         }
         return false;
-
     }
 
 
-    public static function editar(Personaje $personaje): void
-    {
-        $personajes = self::cargar();
 
-        $encontrado = false;
-        foreach ($personajes as &$existente) {
-            if ($existente['codigo'] === $personaje->codigo) {
-                $existente = [
-                    'codigo' => $personaje->codigo,
-                    'foto_url' => $personaje->foto_url,
-                    'tipo' => $personaje->tipo,
-                    'nombre' => $personaje->nombre,
-                    'descripcion' => $personaje->descripcion,
-                    'pais' => $personaje->pais,
-                    'autor' => $personaje->autor,
-                ];
-                $encontrado = true;
-                break;
+    public static function borrar($codigo, $cedula): bool
+    {
+        $obra = Obra::ObtenerporCodigo($codigo);
+
+        if (!$obra) {
+            return false;
+        }
+
+        foreach ($obra->personaje as $index => $personaje) {
+            if ($personaje['cedula'] === $cedula) {
+                unset($obra->personaje[$index]); // Elimina ese personaje
+
+                $obra->personaje = array_values($obra->personaje);
+                return Obra::guardar($obra); // Guarda la obra actualizada
             }
         }
-        unset($existente);
-        if ($encontrado) {
-            self::guardar($personaje);
-        }
-    }
-
-
-
-public static function borrar($codigo)
-    {
-         $ruta = self::$ruta_global . $codigo;
-
-    if (file_exists($ruta)) {
-        return unlink($ruta); // retorna true si se eliminó correctamente
-    }
-
-    return false;
+        return true;
     }
 }

@@ -83,14 +83,48 @@ class Obra
     }
 
 
-public static function borrar($codigo)
+    public static function borrar($codigo)
     {
-         $ruta = self::$ruta_global . $codigo;
+        $ruta = self::$ruta_global . $codigo;
 
-    if (file_exists($ruta)) {
-        return unlink($ruta); // retorna true si se eliminó correctamente
+        if (file_exists($ruta)) {
+            return unlink($ruta);
+        }
+
+        return false;
     }
 
-    return false;
+    public static function ObtenerporCodigo($codigo): Obra|null
+    {
+        $ruta = self::$ruta_global . $codigo;
+
+        if (!file_exists($ruta)) {
+            return null;
+        }
+
+        $contenido = file_get_contents($ruta);
+        $datos = json_decode($contenido, true);
+
+        if ($datos === null) {
+            return null;
+        }
+
+        $obra = new Obra($datos); 
+
+        /*
+        $obra->codigo = $datos['codigo'];
+        $obra->foto_url = $datos['foto_url'];
+        $obra->tipo = $datos['tipo'];
+        $obra->nombre = $datos['nombre'];
+        $obra->descripcion = $datos['descripcion'];
+        $obra->pais = $datos['pais'];
+        $obra->autor = $datos['autor'];
+        $obra->personaje = $datos['personaje'] ?? [];
+        */
+        return $obra;
     }
+
+
+
+
 }
